@@ -1,0 +1,8 @@
+# vscode
+.vscode
+
+# dependencies
+/client/node_modules
+/client/build
+/env
+/products/migrations
