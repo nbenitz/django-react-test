@@ -20,7 +20,7 @@ class ProductoSerializer(serializers.ModelSerializer):
 
     def get_imagenes(self, obj):
         imagenes = ImagenProducto.objects.filter(producto=obj)
-        return [imagen.imagen.url for imagen in imagenes]
+        return [{'id': imagen.id, 'url': imagen.imagen.url} for imagen in imagenes]
 
 
 

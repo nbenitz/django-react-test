@@ -17,3 +17,5 @@ export const uploadImages = (imageFormData) => productApi.post('imagenes/', imag
 export const deleteProduct = (id) => productApi.delete(`productos/${id}/`);
 
 export const updateProduct = (id, product) => productApi.put(`productos/${id}/`, product);
+
+export const deleteImage = (id) => productApi.delete(`imagenes/${id}/`);

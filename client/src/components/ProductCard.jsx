@@ -6,7 +6,7 @@ export function ProductCard({ product }) {
   let firstImage = null;
 
   if (product.imagenes.length > 0) {
-    firstImage = API_URL + product.imagenes[0];
+    firstImage = API_URL + product.imagenes[0].url;
   }
 
   return (
