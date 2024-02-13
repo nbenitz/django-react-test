@@ -97,43 +97,55 @@ export function ProductFormPage() {
       });
     }
 
-    navigate('/products');
+    //navigate('/products');
   });
 
   // Función para manejar la selección de archivos
   const handleFileChange = (event) => {
     const files = event.target.files;
     const previews = [];
+    const fileNameSpan = document.getElementById('fileName');
 
-    // Leer cada archivo seleccionado
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const reader = new FileReader();
+    // Actualizar el texto del nombre de archivo
+    if (files.length === 1) {
+      fileNameSpan.textContent = files[0].name;
+    } else {
+      fileNameSpan.textContent = files.length > 1 ? `${files.length} imágenes` : 'Sin archivos seleccionados';
+    }
 
-      // Configurar la función de devolución de llamada cuando se carga el archivo
-      reader.onload = (e) => {
-        previews.push(e.target.result); // Agregar la vista previa del archivo al array
-        // Actualizar el estado de las vistas previas
-        setFilePreviews(previews);
-      };
+    if (files.length > 0) {
+      // Leer cada archivo seleccionado
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const reader = new FileReader();
 
-      // Leer el archivo como una URL de datos
-      reader.readAsDataURL(file);
+        // Configurar la función de devolución de llamada cuando se carga el archivo
+        reader.onload = (e) => {
+          previews.push(e.target.result); // Agregar la vista previa del archivo al array
+          // Actualizar el estado de las vistas previas
+          setFilePreviews(previews);
+        };
+
+        // Leer el archivo como una URL de datos
+        reader.readAsDataURL(file);
+      }
+    } else {
+      setFilePreviews([]);
     }
   };
-
 
   return (
     <div className="max-w-xl mx-auto">
       <form onSubmit={onSubmit}>
-
-        <input
-          type="text"
-          placeholder="Nombre"
-          {...register('nombre', { required: true })}
-          className="bg-zinc-700 p-3 rounded-lg block w-full mb-3"
-        />
-        {errors.nombre && <span className="text-red-500">Este campo es requerido</span>}
+        <div className="mb-3">
+          <input
+            type="text"
+            placeholder="Nombre"
+            {...register('nombre', { required: true })}
+            className="bg-zinc-700 p-3 rounded-lg block w-full"
+          />
+          {errors.nombre && <div className="w-full text-red-500">Este campo es requerido</div>}
+        </div>
 
         <input
           type="text"
@@ -143,34 +155,24 @@ export function ProductFormPage() {
         />
 
         {/* Selector de categoría */}
-        <select
-          {...register('categoria', { required: true })}
-          className="bg-zinc-700 p-3 rounded-lg block w-full mb-3"
-        >
-          <option value="">Selecciona una Categoría</option>
-          {categories.map(category => (
-            <option key={category.id} value={category.id}>{category.nombre}</option>
-          ))}
-        </select>
-        {errors.categoria && <span className="text-red-500">Por favor selecciona una categoría</span>}
-
-        {/* Campos para cargar imágenes */}
         <div className="mb-3">
-          {/* Campo para cargar archivos con evento onChange */}
-          <input type="file" {...register('imagenes', { required: false })} onChange={handleFileChange} multiple />
-          {errors.imagenes && <p><span className="text-red-500">Por favor selecciona al menos una imagen</span></p>}
+          <select
+            {...register('categoria', { required: true })}
+            className="bg-zinc-700 p-3 rounded-lg block w-full"
+          >
+            <option value="">Selecciona una Categoría</option>
+            {categories.map(category => (
+              <option key={category.id} value={category.id}>{category.nombre}</option>
+            ))}
+          </select>
+          {errors.categoria && <div className="w-full text-red-500">Por favor selecciona una categoría</div>}
         </div>
-        {/* Mostrar miniaturas de las imágenes seleccionadas */}
-        <div className="flex flex-wrap">
-          {filePreviews.map((preview, index) => (
-            <img key={index} src={preview} alt={`Preview ${index}`} className="max-h-24 mb-2 mx-1" />
-          ))}
-        </div>
+
         {/* Mostrar miniaturas de las imágenes seleccionadas y las imágenes del producto */}
-        <div className="flex flex-wrap">
+        <div className="flex flex-wrap bg-zinc-700 p-3 mb-3 rounded-lg">
           {productImages && productImages.map((image, index) => (
-            <div key={index} className="m-2">
-              <img src={API_URL + image.url} alt={`Imagen ${index}`} className="max-h-32 mb-2" />
+            <div key={index} className="mx-1 my-2">
+              <img src={API_URL + image.url} alt={`Imagen ${index}`} className="max-h-32" />
               {/* Checkbox para eliminar la imagen */}
               <label className="flex items-center">
                 <input type="checkbox" {...register(`imagenes_eliminar.${index}`)} value={image.id} className="mr-2" />
@@ -178,6 +180,32 @@ export function ProductFormPage() {
               </label>
             </div>
           ))}
+        </div>
+
+        {/* Campos para cargar imágenes */}
+        <div className="bg-zinc-700 p-3 rounded-lg">
+          <div >
+            <label htmlFor="fileInput" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 mt-1 rounded inline-flex items-center">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+              Subir Imágenes
+            </label>
+            <span id="fileName" className="ml-3">Sin archivos seleccionados</span>
+            <input
+              id="fileInput"
+              type="file"
+              className="absolute opacity-0 w-0 h-0"
+              {...register('imagenes', { required: false })}
+              accept="image/*"
+              onChange={handleFileChange}
+              multiple
+            />
+          </div>
+          {/* Mostrar miniaturas de las imágenes seleccionadas */}
+          <div className="flex flex-wrap mb-1">
+            {filePreviews.map((preview, index) => (
+              <img key={index} src={preview} alt={`Preview ${index}`} className="max-h-24 mt-3 mr-3" />
+            ))}
+          </div>
         </div>
 
         <button
@@ -209,7 +237,7 @@ export function ProductFormPage() {
           </button>
         </div>
       )}
-      
+
     </div>
   )
 }
