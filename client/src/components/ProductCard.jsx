@@ -10,16 +10,15 @@ export function ProductCard({ product }) {
   }
 
   return (
-    <div style={{background:'#303030'}}
-      onClick={() => {
-        navigate(`/products/${product.id}`);
-      }}
+    <div
+      className='bg-zinc-800 p-3 hover:bg-zinc-700 hover:cursor-pointer'
+      onClick={() => { navigate(`/products/${product.id}`); }}
     >
-      <h1>{product.nombre}</h1>
-      <p><b>Estado: </b>{product.estado}</p>
-      <p><b>Categoría: </b>{product.categoria_nombre}</p>
-      {firstImage && <img src={firstImage} alt={product.nombre} height="300" />}
-
+      <h1 className='font-bold uppercase'>{product.nombre}</h1>
+      {firstImage && <img src={firstImage} alt={product.nombre} className="max-h-300 my-2" />}
+      <p className='text-slate-400'><b>Estado: </b>{product.estado}</p>
+      <p className='text-slate-400'><b>Categoría: </b>{product.categoria_nombre}</p>
+      
     </div>
   )
 }  
