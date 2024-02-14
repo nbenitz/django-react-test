@@ -10,127 +10,123 @@ export function ProductFormPage() {
   const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm();
   const [categories, setCategories] = useState([]);
   const [productImages, setProductImages] = useState([]);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [filePreviews, setFilePreviews] = useState([]);
   const navigate = useNavigate();
   const params = useParams();
 
   useEffect(() => {
-    async function loadCategories() {
-      try {
-        const res = await getAllCategories();
-        setCategories(res.data);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      }
-    }
-
-    async function loadProduct(productId) {
-      try {
-        if (productId) {
-          const { data } = await getProduct(productId);
-          setValue('nombre', data.nombre);
-          setValue('estado', data.estado);
-          setValue('categoria', data.categoria);
-          // Establecer las imágenes asociadas al producto en el estado local
-          setProductImages(data.imagenes);
-        }
-      } catch (error) {
-        console.error('Error fetching product:', error);
-      }
-    }
-
-    loadCategories();
-    loadProduct(params.id);
+    loadInitialData();
   }, [params.id]);
 
-  const onSubmit = handleSubmit(async data => {
-    const productData = {
-      nombre: data.nombre,
-      estado: data.estado,
-      categoria: data.categoria
-    };
-
-    let productId;
-
-    if (params.id) {
-      await updateProduct(params.id, productData);
-      productId = params.id;
-    } else {
-      const res = await createProduct(productData);
-      productId = res.data.id;
+  const loadInitialData = async () => {
+    try {
+      const categoriesData = await getAllCategories();
+      setCategories(categoriesData.data);
+      if (params.id) {
+        const productData = await getProduct(params.id);
+        setProductFields(productData.data);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      toast.error('Hubo un error al cargar los datos iniciales. Por favor, inténtalo de nuevo más tarde.');
     }
+  };
 
-    // Subir las nuevas imágenes asociadas al producto
-    if (data.imagenes && data.imagenes.length > 0) {
-      for (let i = 0; i < data.imagenes.length; i++) {
+  const setProductFields = (data) => {
+    setValue('nombre', data.nombre);
+    setValue('estado', data.estado);
+    setValue('categoria', data.categoria);
+    setProductImages(data.imagenes);
+  };
+
+  const onSubmit = handleSubmit(async data => {
+    try {
+      const productData = {
+        nombre: data.nombre,
+        estado: data.estado,
+        categoria: data.categoria
+      };
+      let productId;
+      if (params.id) {
+        await updateProduct(params.id, productData);
+        productId = params.id;
+      } else {
+        const res = await createProduct(productData);
+        productId = res.data.id;
+      }
+      await handleImageUpload(productId, data.imagenes);
+      await handleImageDeletion(data.imagenes_eliminar);
+      handleSuccessMessage(params.id);
+      navigate('/products');
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error('Hubo un error al enviar el formulario. Por favor, inténtalo de nuevo más tarde.');
+    }
+  });
+
+  const handleImageUpload = async (productId, images) => {
+    if (images && images.length > 0) {
+      for (let i = 0; i < images.length; i++) {
         const imageFormData = new FormData();
         imageFormData.append('producto', productId);
-        imageFormData.append('imagen', data.imagenes[i]);
+        imageFormData.append('imagen', images[i]);
         await uploadImages(imageFormData);
       }
     }
+  };
 
-    // Eliminar las imágenes que se han marcado para eliminar
-    if (data.imagenes_eliminar && data.imagenes_eliminar.length > 0) {
-      for (let i = 0; i < data.imagenes_eliminar.length; i++) {
-        if (data.imagenes_eliminar[i]) {
-          await deleteImage(data.imagenes_eliminar[i]);
+  const handleImageDeletion = async (imagesToDelete) => {
+    if (imagesToDelete && imagesToDelete.length > 0) {
+      for (let i = 0; i < imagesToDelete.length; i++) {
+        if (imagesToDelete[i]) {
+          await deleteImage(imagesToDelete[i]);
         }
       }
     }
+  };
 
-    if (params.id) {
-      toast.success('Producto actualizado correctamente', {
-        position: "botton-right",
-        style: {
-          background: "#101010",
-          color: "#fff",
-        }
-      });
-    } else {
-      toast.success('Producto creado correctamente', {
-        position: "botton-right",
-        style: {
-          background: "#101010",
-          color: "#fff",
-        }
-      });
-    }
-
-    //navigate('/products');
-  });
+  const handleSuccessMessage = (productId) => {
+    const successMessage = params.id ? 'Producto actualizado correctamente' : 'Producto creado correctamente';
+    toast.success(successMessage, {
+      position: "botton-right",
+      style: {
+        background: "#101010",
+        color: "#fff",
+      }
+    });
+  };
 
   // Función para manejar la selección de archivos
   const handleFileChange = (event) => {
-    const files = event.target.files;
-    const previews = [];
-    const fileNameSpan = document.getElementById('fileName');
+    try {
+      const files = event.target.files;
+      const previews = [];
 
-    // Actualizar el texto del nombre de archivo
-    if (files.length === 1) {
-      fileNameSpan.textContent = files[0].name;
-    } else {
-      fileNameSpan.textContent = files.length > 1 ? `${files.length} imágenes` : 'Sin archivos seleccionados';
-    }
+      if (files.length > 0) {
+        // Crear una lista de archivos seleccionados
+        const fileList = Array.from(files);
 
-    if (files.length > 0) {
-      // Leer cada archivo seleccionado
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const reader = new FileReader();
+        // Actualizar el estado de los archivos seleccionados
+        setSelectedFiles(fileList);
 
-        // Configurar la función de devolución de llamada cuando se carga el archivo
-        reader.onload = (e) => {
-          previews.push(e.target.result); // Agregar la vista previa del archivo al array
-          // Actualizar el estado de las vistas previas
-          setFilePreviews(previews);
-        };
-
-        // Leer el archivo como una URL de datos
-        reader.readAsDataURL(file);
+        // Crear las vistas previas de los archivos
+        fileList.forEach((file) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            previews.push(e.target.result);
+            setFilePreviews(previews);
+          };
+          reader.readAsDataURL(file);
+        });
+      } else {
+        // Limpiar el estado si no hay archivos seleccionados
+        setSelectedFiles([]);
+        setFilePreviews([]);
       }
-    } else {
-      setFilePreviews([]);
+    } catch (error) {
+      console.error('Error handling file change:', error);
+      toast.error('Hubo un error al manejar la selección de archivos. Por favor, inténtalo de nuevo.');
     }
   };
 
@@ -184,12 +180,16 @@ export function ProductFormPage() {
 
         {/* Campos para cargar imágenes */}
         <div className="bg-zinc-700 p-3 rounded-lg">
-          <div >
+          <div>
             <label htmlFor="fileInput" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 mt-1 rounded inline-flex items-center">
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
               Subir Imágenes
             </label>
-            <span id="fileName" className="ml-3">Sin archivos seleccionados</span>
+            <span id="fileName" className="ml-3">
+              {selectedFiles.length > 0 ?
+                (selectedFiles.length === 1 ? selectedFiles[0].name : `${selectedFiles.length} imágenes`)
+                : 'Sin archivos seleccionados'}
+            </span>
             <input
               id="fileInput"
               type="file"
