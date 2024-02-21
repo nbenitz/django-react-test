@@ -1,7 +1,8 @@
-import React from 'react';
+import React from "react"
 import { Link, useNavigate } from 'react-router-dom';
 
-export function Navigation() {
+
+export function Navigation({ isApproved }) {
   const isAuthenticated = localStorage.getItem('token');
   const navigate = useNavigate();
 
@@ -17,9 +18,11 @@ export function Navigation() {
           Productos
         </Link>
 
+        {isApproved && (
         <button className='bg-indigo-500 px-3 py-2 rounded-lg'>
           <Link to='products-create'>Crear Producto</Link>
         </button>
+        )}
       </div>
 
       <div className='mr-4'>

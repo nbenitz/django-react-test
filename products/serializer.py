@@ -22,6 +22,16 @@ class ProductoSerializer(serializers.ModelSerializer):
         imagenes = ImagenProducto.objects.filter(producto=obj)
         return [{'id': imagen.id, 'url': imagen.imagen.url} for imagen in imagenes]
 
+class ProductoLiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Producto
+        fields = ('id', 'nombre', 'estado')
+
+class CategoriaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Categoria
+        fields = ('id', 'nombre')
+
 
 
 class CategoriaSerializer(serializers.ModelSerializer):

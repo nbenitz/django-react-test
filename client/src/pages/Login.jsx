@@ -9,7 +9,7 @@ export function Login() {
   const handleLogin = async () => {
     try {
       const response = await login(username, password);
-      const token = response.data.token;
+      const token = response.data.access;
       // Almacena el token en el localStorage o en las cookies
       localStorage.setItem('token', token);
       window.location.href = '/';
