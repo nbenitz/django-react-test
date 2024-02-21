@@ -2,6 +2,7 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import filters
 from .serializer import ProductoSerializer, ProductoLiteSerializer, ImagenProductoSerializer, CategoriaSerializer
 from .models import Producto, Categoria, ImagenProducto, Profile
 
@@ -24,6 +25,8 @@ class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
     serializer_class = ProductoSerializer
     permission_classes = [ProductoPermission]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['nombre', 'estado', 'categoria__nombre']
 
     def get_serializer_class(self):
         if self.request.user.is_authenticated:

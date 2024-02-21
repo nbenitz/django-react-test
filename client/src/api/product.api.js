@@ -38,7 +38,7 @@ authApi.interceptors.request.use(
   }
 );
 
-export const getAllProducts = () => productApi.get('productos/');
+export const getAllProducts = (queryParams) => productApi.get('productos/', {params: queryParams});
 
 export const getProduct = (id) => productApi.get(`productos/${id}/`);
 
