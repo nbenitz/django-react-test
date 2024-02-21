@@ -25,6 +25,7 @@ export function ProductFormPage() {
       setCategories(categoriesData.data);
       if (params.id) {
         const productData = await getProduct(params.id);
+        console.log(productData);
         setProductFields(productData.data);
       }
     } catch (error) {
@@ -132,6 +133,11 @@ export function ProductFormPage() {
 
   return (
     <div className="max-w-xl mx-auto">
+      {params.id ? (
+        <h2 className="text-center text-3xl font-semibold mb-8">Actualizar Producto</h2>
+      ) : (
+        <h2 className="text-center text-3xl font-semibold mb-8">Nuevo Producto</h2>
+      )}
       <form onSubmit={onSubmit}>
         <div className="mb-3">
           <input
@@ -164,19 +170,21 @@ export function ProductFormPage() {
           {errors.categoria && <div className="w-full text-red-500">Por favor selecciona una categoría</div>}
         </div>
 
-        {/* Mostrar miniaturas de las imágenes seleccionadas y las imágenes del producto */}
-        <div className="flex flex-wrap bg-zinc-700 p-3 mb-3 rounded-lg">
-          {productImages && productImages.map((image, index) => (
-            <div key={index} className="mx-1 my-2">
-              <img src={API_URL + image.url} alt={`Imagen ${index}`} className="max-h-32" />
-              {/* Checkbox para eliminar la imagen */}
-              <label className="flex items-center">
-                <input type="checkbox" {...register(`imagenes_eliminar.${index}`)} value={image.id} className="mr-2" />
-                <span className="text-white">Eliminar</span>
-              </label>
-            </div>
-          ))}
-        </div>
+        {/* Mostrar miniaturas de las imágenes del producto */}
+        {productImages.length > 0 &&
+          <div className="flex flex-wrap bg-zinc-700 p-3 mb-3 rounded-lg">
+            {productImages && productImages.map((image, index) => (
+              <div key={index} className="mx-1 my-2">
+                <img src={API_URL + image.url} alt={`Imagen ${index}`} className="max-h-32" />
+                {/* Checkbox para eliminar la imagen */}
+                <label className="flex items-center">
+                  <input type="checkbox" {...register(`imagenes_eliminar.${index}`)} value={image.id} className="mr-2" />
+                  <span className="text-white">Eliminar</span>
+                </label>
+              </div>
+            ))}
+          </div>
+        }
 
         {/* Campos para cargar imágenes */}
         <div className="bg-zinc-700 p-3 rounded-lg">
